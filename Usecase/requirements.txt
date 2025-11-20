@@ -12,6 +12,3 @@ ddgs
 google-generativeai
 cryptography>=3.1
 pandas
-re
-json
-logging
