@@ -8,6 +8,6 @@ msoffcrypto-tool
 pypdf
 docx2txt
 openpyxl
-duckduckgo-search
+duckduckgo-search>=6.0.0
 google-generativeai
 cryptography>=3.1
