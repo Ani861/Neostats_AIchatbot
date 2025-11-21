@@ -34,19 +34,19 @@ Scanned Documents: The system currently supports digital PDFs only (files where 
 
 Navigate to the folder:
 
-  cd usecase
+     cd usecase
 
 Install Dependencies:
 
-  pip install -r requirements.txt
+    pip install -r requirements.txt
 
 Configure API Key: Create a .env file in this folder:
 
-   GOOGLE_API_KEY=your_actual_api_key_here
+       GOOGLE_API_KEY=your_actual_api_key_here
 
 Run the Application:
 
-     streamlit run app.py
+        streamlit run app.py
 
 📂 Features Implemented
 
