@@ -10,8 +10,8 @@ from utils.pdf_processor import process_document
 from utils.search_tool import perform_web_search 
 from config.config import GOOGLE_API_KEY
 
-st.set_page_config(page_title='NeoStats - Bank Statement Analyst', layout='wide')
-st.title('NeoStats: Bank Statement Analyst AI')
+st.set_page_config(page_title='Bank Statement Analyst', layout='wide')
+st.title(' Bank Statement Analyst AI')
 st.caption('Upload your financial statement (PDF/DOCX/XLSX) and ask questions about your spending.')
 
 logging.basicConfig(level=logging.INFO)

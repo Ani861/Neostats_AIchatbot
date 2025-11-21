@@ -41,8 +41,20 @@ def process_document(uploaded_file, password=None):
         # Load Documents
         docs = []
         if file_extension == ".pdf":
-            loader = PyPDFLoader(temp_path_for_loader, password=password) 
-            docs = loader.load()
+            # FIX 1: Robust Password Handling
+            try:
+                # Try loading with the provided password
+                loader = PyPDFLoader(temp_path_for_loader, password=password) 
+                docs = loader.load()
+            except Exception as e:
+                # If pypdf complains the file is NOT encrypted but we sent a password, try again without it
+                if "not an encrypted file" in str(e).lower() and password:
+                    logger.warning("Password provided for non-encrypted PDF. Retrying without password.")
+                    loader = PyPDFLoader(temp_path_for_loader, password=None)
+                    docs = loader.load()
+                else:
+                    raise e
+
         elif file_extension == ".docx":
             loader = Docx2txtLoader(temp_path_for_loader)
             docs = loader.load()
@@ -52,6 +64,10 @@ def process_document(uploaded_file, password=None):
         else:
             raise ValueError(f"Unsupported file type: {file_extension}")
 
+        # FIX 2: Check for Empty Content (Prevents Index Error)
+        if not docs:
+            raise ValueError("No content could be extracted from the document.")
+
         # Split Text
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000, 
@@ -59,6 +75,9 @@ def process_document(uploaded_file, password=None):
             separators=["\n\n", "\n", " ", ""] 
         )
         splits = text_splitter.split_documents(docs)
+
+        if not splits:
+             raise ValueError("Document contains no text usable for analysis (it might be a scanned image without OCR).")
 
         # Create Vector Store
         embeddings = get_embedding_model()
