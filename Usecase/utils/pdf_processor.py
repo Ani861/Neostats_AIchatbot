@@ -9,10 +9,7 @@ from models.embeddings import get_embedding_model
 logger = logging.getLogger(__name__)
 
 def process_document(uploaded_file, password=None):
-    """
-    Processes uploaded PDF, DOCX, or XLSX files into a vector retriever.
-    Handles decryption and cleanup.
-    """
+   
     # Create unique temp filenames to avoid collisions
     temp_path = f"temp_{uploaded_file.name}"
     decrypted_temp_path = f"decrypted_{uploaded_file.name}"

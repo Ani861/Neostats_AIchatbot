@@ -4,7 +4,6 @@ import json
 import re
 import pandas as pd
 
-# Assuming these modules exist in your project structure based on your previous snippet
 from models.llm import get_llm
 from utils.pdf_processor import process_document 
 from utils.search_tool import perform_web_search 
@@ -57,7 +56,6 @@ force_web_search = st.sidebar.checkbox(
     help='Adds web search context to every query.'
 )
 
-# --- Document Processing Logic ---
 retriever = None
 
 if uploaded_file:
@@ -81,17 +79,16 @@ if uploaded_file:
 
 st.markdown('---')
 
-# --- Chat Interface ---
+
 user_query = st.chat_input("Ask about your finances (e.g., 'Total spent on food?' or 'Plot a chart of spending').")
 
 if user_query and retriever:
     try:
-        # 1. Retrieve Context
+      
         with st.spinner('🔍 Reading statement...'):
             relevant_docs = retriever.invoke(user_query)
             rag_context = "\n---\n".join([doc.page_content for doc in relevant_docs])
 
-        # 2. Determine Web Search Necessity
         web_context = ""
         generic_keywords = ["what", "who", "how", "define", "explain", "rate", "price", "news", "compare", "analysis", "trend"]
         is_generic_query = any(w in user_query.lower() for w in generic_keywords)
@@ -172,39 +169,33 @@ if user_query and retriever:
         YOUR ANSWER:
         """
         
-        # 5. Display User Message
         with st.chat_message("user"):
             st.write(user_query)
 
-        # 6. Generate and Display Assistant Response
-        # 6. Generate and Display Assistant Response
         with st.spinner("🤖 Thinking..."):
             llm = get_llm()
             response = llm.invoke(prompt_template).content
             
             with st.chat_message("assistant"):
-                # Regex to find the JSON block
+                
                 json_match = re.search(r"```json\n(.*?)\n```", response, re.DOTALL)
                 
                 if json_match:
-                    # 1. Extract the JSON content
                     json_str = json_match.group(1)
                     
-                    # 2. Remove the JSON block from the text shown to the user
                     clean_text = response.replace(json_match.group(0), "")
-                    st.write(clean_text)  # Display only the conversation text
+                    st.write(clean_text)  
                     
-                    # 3. Render the Graph (Hidden from text, shown as visual)
                     try:
                         chart_data = json.loads(json_str)
                         
                         if "data" in chart_data:
-                            # Create a container for the graph to make it pop
+                          
                             with st.container():
-                                st.markdown("### 📊 Visualization")
+                                st.markdown("### Visualization")
                                 df = pd.DataFrame(chart_data["data"])
                                 
-                                # Set Index for X-Axis Labels
+                                
                                 if "Category" in df.columns:
                                     df = df.set_index("Category")
                                 elif "Date" in df.columns:
@@ -225,10 +216,10 @@ if user_query and retriever:
                         logger.error(f"Graph rendering error: {graph_err}")
                 
                 else:
-                    # No graph found, just print the response as is
+                    
                     st.write(response)
 
-            # 7. Show Sources (Expandable)
+         
             with st.expander("See Source Context"):
                 if rag_context:
                     st.markdown("**Document Excerpts:**")
@@ -246,7 +237,6 @@ if user_query and retriever:
 elif user_query and not retriever:
     st.warning("⚠️ Please upload a financial statement to begin.")
 
-# --- Dev Tools ---
 if st.sidebar.button("Clear Cache & Rerun"):
     st.cache_resource.clear()
     st.rerun()
