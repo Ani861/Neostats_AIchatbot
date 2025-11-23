@@ -1,6 +1,7 @@
 import os
 import logging
 import msoffcrypto
+import pypdf  
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, UnstructuredExcelLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
@@ -9,7 +10,7 @@ from models.embeddings import get_embedding_model
 logger = logging.getLogger(__name__)
 
 def process_document(uploaded_file, password=None):
-   
+    
     # Create unique temp filenames to avoid collisions
     temp_path = f"temp_{uploaded_file.name}"
     decrypted_temp_path = f"decrypted_{uploaded_file.name}"
@@ -38,13 +39,24 @@ def process_document(uploaded_file, password=None):
         # Load Documents
         docs = []
         if file_extension == ".pdf":
-            # FIX 1: Robust Password Handling
             try:
-                # Try loading with the provided password
-                loader = PyPDFLoader(temp_path_for_loader, password=password) 
+                # FIX: Check encryption status explicitly before loading
+                reader = pypdf.PdfReader(temp_path_for_loader)
+                
+                if reader.is_encrypted:
+                    # File IS encrypted: We need the password
+                    if not password:
+                        raise ValueError("This PDF is password protected. Please enter a password.")
+                    loader = PyPDFLoader(temp_path_for_loader, password=password)
+                else:
+                    # File is NOT encrypted: Force password to None so it opens automatically
+                    # This ignores any password the user might have typed by mistake
+                    loader = PyPDFLoader(temp_path_for_loader, password=None)
+                
                 docs = loader.load()
+
             except Exception as e:
-                # If pypdf complains the file is NOT encrypted but we sent a password, try again without it
+                # Keep the fallback just in case, but the logic above prevents most issues
                 if "not an encrypted file" in str(e).lower() and password:
                     logger.warning("Password provided for non-encrypted PDF. Retrying without password.")
                     loader = PyPDFLoader(temp_path_for_loader, password=None)
@@ -61,7 +73,7 @@ def process_document(uploaded_file, password=None):
         else:
             raise ValueError(f"Unsupported file type: {file_extension}")
 
-        # FIX 2: Check for Empty Content (Prevents Index Error)
+        # Check for Empty Content
         if not docs:
             raise ValueError("No content could be extracted from the document.")
 
@@ -74,7 +86,7 @@ def process_document(uploaded_file, password=None):
         splits = text_splitter.split_documents(docs)
 
         if not splits:
-             raise ValueError("Document contains no text usable for analysis (it might be a scanned image without OCR).")
+             raise ValueError("Document contains no text usable for analysis.")
 
         # Create Vector Store
         embeddings = get_embedding_model()

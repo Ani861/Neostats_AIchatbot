@@ -12,3 +12,4 @@ ddgs
 google-generativeai
 cryptography>=3.1
 pandas
+pypdf
