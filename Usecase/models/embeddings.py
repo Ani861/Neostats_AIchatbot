@@ -11,7 +11,7 @@ def get_embedding_model():
             raise ValueError("API Key not found for embeddings.")
             
         return GoogleGenerativeAIEmbeddings(
-            # CHANGE THIS LINE: Add "models/" prefix
+   
             model="models/text-embedding-004", 
             google_api_key=GOOGLE_API_KEY
         )

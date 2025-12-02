@@ -36,21 +36,20 @@ def process_document(uploaded_file, password=None):
                 logger.error(f"Decryption failed: {e}")
                 raise ValueError("Decryption failed. Check password or file integrity.")
 
-        # Load Documents
+ 
         docs = []
         if file_extension == ".pdf":
             try:
-                # FIX: Check encryption status explicitly before loading
+              
                 reader = pypdf.PdfReader(temp_path_for_loader)
                 
                 if reader.is_encrypted:
-                    # File IS encrypted: We need the password
+                              
                     if not password:
                         raise ValueError("This PDF is password protected. Please enter a password.")
                     loader = PyPDFLoader(temp_path_for_loader, password=password)
                 else:
-                    # File is NOT encrypted: Force password to None so it opens automatically
-                    # This ignores any password the user might have typed by mistake
+               
                     loader = PyPDFLoader(temp_path_for_loader, password=None)
                 
                 docs = loader.load()
@@ -99,7 +98,7 @@ def process_document(uploaded_file, password=None):
         raise e
 
     finally:
-        # Cleanup temp files
+       
         for path in [temp_path, decrypted_temp_path]:
             if os.path.exists(path):
                 try:
